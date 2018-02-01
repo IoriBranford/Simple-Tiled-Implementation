@@ -438,6 +438,26 @@ function Map:addNewLayerTile(layer, tile, x, y)
 	table.insert(self.tileInstances[tile.gid], tab)
 end
 
+local function findNonEmptyLine(layer, iaxis, dir)
+	local data = layer.data
+	if not data then
+		return
+	end
+
+	local i1 = dir < 0 and (iaxis == 2 and layer.height or layer.width) or 1
+	local i2 = dir > 0 and (iaxis == 2 and layer.height or layer.width) or 1
+	local j1 = 1
+	local j2 = (iaxis == 1 and layer.height or layer.width)
+	for i = i1, i2, dir do
+		for j = j1, j2 do
+			local tile = iaxis == 2 and data[i][j] or data[j][i]
+			if tile then
+				return i
+			end
+		end
+	end
+end
+
 --- Batch Tiles in Tile Layer for improved draw speed
 -- @param layer The Tile Layer
 function Map:setSpriteBatches(layer)
@@ -450,6 +470,30 @@ function Map:setSpriteBatches(layer)
 		local endY       = layer.height
 		local incrementX = 1
 		local incrementY = 1
+
+		if layer.properties.tilewrap then
+			startX = layer.properties.tilewrapx1 or "nonempty"
+			startY = layer.properties.tilewrapy1 or "nonempty"
+			endX = layer.properties.tilewrapx2 or "nonempty"
+			endY = layer.properties.tilewrapy2 or "nonempty"
+
+			if startX == "nonempty" then
+				startX = findNonEmptyLine(layer, 1, 1) or 1
+				layer.properties.tilewrapx1 = startX
+			end
+			if startY == "nonempty" then
+				startY = findNonEmptyLine(layer, 2, 1) or 1
+				layer.properties.tilewrapy1 = startY
+			end
+			if endX == "nonempty" then
+				endX = findNonEmptyLine(layer, 1, -1) or layer.width
+				layer.properties.tilewrapx2 = endX
+			end
+			if endY == "nonempty" then
+				endY = findNonEmptyLine(layer, 2, -1) or layer.height
+				layer.properties.tilewrapy2 = endY
+			end
+		end
 
 		-- Determine order to add tiles to sprite batch
 		-- Defaults to right-down
