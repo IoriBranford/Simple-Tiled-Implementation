@@ -238,7 +238,7 @@ function Map:setLayer(layer, path)
 	if layer.type == "tilelayer" then
 		self:setTileData(layer)
 		self:setSpriteBatches(layer)
-		layer.draw = function() self:drawTileLayer(layer) end
+		layer.draw = function(layer, tx, ty) self:drawTileLayer(layer, tx, ty) end
 	elseif layer.type == "objectgroup" then
 		self:setObjectData(layer)
 		self:setObjectCoordinates(layer)
@@ -472,18 +472,20 @@ function Map:setSpriteBatches(layer)
 		local incrementY = 1
 
 		if layer.properties.tilewrap then
-			startX = layer.properties.tilewrapx1 or "nonempty"
-			startY = layer.properties.tilewrapy1 or "nonempty"
+			startX = layer.properties.tilewrapx1
+			startX = type(startX) == "number" and startX + 1 or "nonempty"
+			startY = layer.properties.tilewrapy1
+			startY = type(startY) == "number" and startY + 1 or "nonempty"
 			endX = layer.properties.tilewrapx2 or "nonempty"
 			endY = layer.properties.tilewrapy2 or "nonempty"
 
 			if startX == "nonempty" then
 				startX = findNonEmptyLine(layer, 1, 1) or 1
-				layer.properties.tilewrapx1 = startX
+				layer.properties.tilewrapx1 = startX-1
 			end
 			if startY == "nonempty" then
 				startY = findNonEmptyLine(layer, 2, 1) or 1
-				layer.properties.tilewrapy1 = startY
+				layer.properties.tilewrapy1 = startY-1
 			end
 			if endX == "nonempty" then
 				endX = findNonEmptyLine(layer, 1, -1) or layer.width
@@ -766,7 +768,7 @@ function Map:draw(tx, ty, sx, sy)
 
 	for _, layer in ipairs(self.layers) do
 		if layer.visible and layer.opacity > 0 then
-			self:drawLayer(layer)
+			self:drawLayer(layer, tx, ty)
 		end
 	end
 
@@ -786,24 +788,67 @@ end
 
 --- Draw an individual Layer
 -- @param layer The Layer to draw
-function Map.drawLayer(_, layer)
+function Map.drawLayer(_, layer, tx, ty)
 	local r,g,b,a = lg.getColor()
 	lg.setColor(r, g, b, a * layer.opacity)
-	layer:draw()
+	layer:draw(tx, ty)
 	lg.setColor(r,g,b,a)
 end
 
 --- Default draw function for Tile Layers
 -- @param layer The Tile Layer to draw
-function Map:drawTileLayer(layer)
+function Map:drawTileLayer(layer, tx, ty)
 	if type(layer) == "string" or type(layer) == "number" then
 		layer = self.layers[layer]
 	end
 
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 
-	for _, batch in pairs(layer.batches) do
-		lg.draw(batch, floor(layer.x), floor(layer.y))
+	if layer.properties.tilewrap then
+		if self.orientation ~= "orthogonal" then
+			error("Non-ortho tile wrap is not supported yet.")
+		end
+
+		local wrapx1, wrapy1 = layer.properties.tilewrapx1,
+					layer.properties.tilewrapy1
+		local wrapx2, wrapy2 = layer.properties.tilewrapx2,
+					layer.properties.tilewrapy2
+
+		local wrapW = wrapx2 - wrapx1
+		local wrapH = wrapy2 - wrapy1
+
+		local colDX, colDY = self:convertTileToPixel(wrapW, 0)
+		local rowDX, rowDY = self:convertTileToPixel(0, wrapH)
+		local areaDX = colDX + rowDX
+		local areaDY = colDY + rowDY
+
+		local viewW = self.canvas and self.canvas:getWidth() or lg.getWidth()
+		local viewH = self.canvas and self.canvas:getHeight() or lg.getHeight()
+
+		local x1, y1 = self:convertTileToPixel(-wrapx1, -wrapy1)
+		x1 = x1 - tx - layer.x
+		y1 = y1 - ty - layer.y
+
+		x1 = floor(x1 / colDX) * colDX
+		y1 = floor(y1 / rowDY) * rowDY
+
+		local y = y1
+		while y < viewH do
+			local x = x1
+			while x < viewW do
+				for _, batch in pairs(layer.batches) do
+					lg.draw(batch, x, y)
+				end
+				x = x + colDX
+				y = y + colDY
+			end
+			x1 = x1 + rowDX
+			y = y + rowDY
+		end
+	else
+		for _, batch in pairs(layer.batches) do
+			lg.draw(batch, floor(layer.x), floor(layer.y))
+		end
 	end
 end
 
@@ -1404,11 +1449,19 @@ end
 -- @field visible Toggle if layer is visible or hidden
 -- @field opacity Opacity of layer
 -- @field properties Custom properties
--- @field data A tileWo dimensional table filled with individual tiles indexed by [y][x] (in tiles)
+-- @field data A two dimensional table filled with individual tiles indexed by [y][x] (in tiles)
 -- @field update Update function
 -- @field draw Draw function
 -- @see Map.layers
 -- @see Tile
+
+--- @table TileLayer.properties
+-- @field tilewrap Does the tile layer wraparound a.k.a. infinitely repeat
+-- @field tilewrapx1 Left edge of repeating area (in tiles), "nonempty" for first nonempty column
+-- @field tilewrapy1 Top edge of repeating area (in tiles), "nonempty" for first nonempty row
+-- @field tilewrapx2 Right edge of repeating area (in tiles), "nonempty" for last nonempty column
+-- @field tilewrapy2 Bottom edge of repeating area (in tiles), "nonempty" for last nonempty row
+-- @see TileLayer
 
 --- @table ObjectLayer
 -- @field name The name of the layer
