@@ -155,10 +155,11 @@ function Map:setTiles(index, tileset, gid)
 			local id    = gid - tileset.firstgid
 			local quadX = (x - 1) * tileW + margin + (x - 1) * spacing
 			local quadY = (y - 1) * tileH + margin + (y - 1) * spacing
-			local properties, terrain, animation, objectGroup
+			local type, properties, terrain, animation, objectGroup
 
 			for _, tile in pairs(tileset.tiles) do
 				if tile.id == id then
+					type = tile.type
 					properties  = tile.properties
 					animation   = tile.animation
 					objectGroup = tile.objectGroup
@@ -174,6 +175,7 @@ function Map:setTiles(index, tileset, gid)
 			end
 
 			local tile = {
+				type        = type,
 				id          = id,
 				gid         = gid,
 				tileset     = index,
