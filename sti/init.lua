@@ -866,8 +866,8 @@ function Map:drawObjectLayer(layer)
 
 	assert(layer.type == "objectgroup", "Invalid layer type: " .. layer.type .. ". Layer must be of type: objectgroup")
 
-	local line  = { 160, 160, 160, 255 * layer.opacity       }
-	local fill  = { 160, 160, 160, 255 * layer.opacity * 0.5 }
+	local line  = { .625,.625,.625, layer.opacity       }
+	local fill  = { .625,.625,.625, layer.opacity * 0.5 }
 	local r,g,b,a = lg.getColor()
 	local reset = {   r,   g,   b,   a * layer.opacity       }
 
