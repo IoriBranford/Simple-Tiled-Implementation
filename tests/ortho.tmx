@@ -41,8 +41,8 @@
  </layer>
  <objectgroup id="2" name="Shapes">
   <properties>
+   <property name="brain" value="layer.blink"/>
    <property name="collidable" type="bool" value="true"/>
-   <property name="think" value="layer.blink"/>
   </properties>
   <object id="1" x="207" y="106" width="98" height="98"/>
   <object id="3" x="411" y="208" width="98" height="98">

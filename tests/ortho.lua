@@ -98,8 +98,8 @@ return {
       offsety = 0,
       draworder = "topdown",
       properties = {
-        ["collidable"] = true,
-        ["think"] = "layer.blink"
+        ["brain"] = "layer.blink",
+        ["collidable"] = true
       },
       objects = {
         {
