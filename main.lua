@@ -7,7 +7,7 @@ local points
 
 function love.load()
 	-- Load map
-	map = sti("tests/ortho.lua", { "box2d" })
+	map = sti("tests/ortho.lua", { "box2d", "brain" })
 	--map = sti("tests/iso.lua",   { "box2d" })
 	--map = sti("tests/stag.lua",  { "box2d" })
 	--map = sti("tests/hex.lua",   { "box2d" })
@@ -26,6 +26,7 @@ function love.load()
 	love.physics.setMeter(32)
 	world = love.physics.newWorld(0, 0)
 	map:box2d_init(world)
+	map:brain_init()
 
 	-- Drop points on clicked areas
 	points = {

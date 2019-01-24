@@ -1,13 +1,14 @@
 return {
-  version = "1.1",
+  version = "1.2",
   luaversion = "5.1",
-  tiledversion = "0.17.2",
+  tiledversion = "1.2.1",
   orientation = "orthogonal",
   renderorder = "right-down",
   width = 32,
   height = 32,
   tilewidth = 32,
   tileheight = 32,
+  nextlayerid = 4,
   nextobjectid = 10,
   properties = {},
   tilesets = {
@@ -18,12 +19,18 @@ return {
       tileheight = 32,
       spacing = 0,
       margin = 0,
+      columns = 32,
       image = "ash_uvgrid01.jpg",
       imagewidth = 1024,
       imageheight = 1024,
       tileoffset = {
         x = 0,
         y = 0
+      },
+      grid = {
+        orientation = "orthogonal",
+        width = 32,
+        height = 32
       },
       properties = {},
       terrains = {},
@@ -34,6 +41,7 @@ return {
   layers = {
     {
       type = "tilelayer",
+      id = 1,
       name = "Grid",
       x = 0,
       y = 0,
@@ -82,6 +90,7 @@ return {
     },
     {
       type = "objectgroup",
+      id = 2,
       name = "Shapes",
       visible = true,
       opacity = 1,
@@ -89,7 +98,8 @@ return {
       offsety = 0,
       draworder = "topdown",
       properties = {
-        ["collidable"] = true
+        ["collidable"] = true,
+        ["think"] = "layer.blink"
       },
       objects = {
         {
@@ -213,6 +223,7 @@ return {
     },
     {
       type = "imagelayer",
+      id = 3,
       name = "Image Layer 1",
       visible = true,
       opacity = 1,
