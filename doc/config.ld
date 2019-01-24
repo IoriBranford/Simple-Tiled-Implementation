@@ -6,6 +6,7 @@ dir         = "."
 file        = {
 	"../sti/init.lua",
 	"../sti/plugins/box2d.lua",
+	"../sti/plugins/brain.lua",
 	"../sti/plugins/bump.lua"
 }
 
