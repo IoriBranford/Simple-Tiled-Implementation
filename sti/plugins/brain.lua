@@ -62,14 +62,13 @@
 -- @license MIT/X11
 
 local require = require
-local setmetatable = setmetatable
 
 local map_default_brain = {
 	start = function(map)
 	end,
 	think = function(map, dt)
 		local layers = map.layers
-		for l = 1, #map.layers do
+		for l = 1, #layers do
 			layers[l]:think(dt, map)
 		end
 	end
@@ -81,7 +80,7 @@ local layer_default_brain = {
 	think = function(layer, dt, map)
 		local objects = layer.objects
 		if objects then
-			for o = 1, #layer.objects do
+			for o = 1, #objects do
 				objects[o]:think(dt, map, layer)
 			end
 		end
@@ -99,6 +98,12 @@ local function brain_load(module, default)
 	return module and require(module) or default
 end
 
+local function brain_set(elem, default)
+	for k, f in pairs(brain_load(elem.properties.brain, default)) do
+		elem[k] = f
+	end
+end
+
 return {
 	brain_LICENSE        = "MIT/X11",
 	brain_URL            = "https://github.com/IoriBranford/Simple-Tiled-Implementation",
@@ -107,32 +112,17 @@ return {
 
 	--- Load all logic modules for map, layers, and objects
 	brain_init = function (map)
+		brain_set(map, map_default_brain)
 		local layers = map.layers
 		for l = 1, #map.layers do
 			local layer = layers[l]
-			setmetatable(layer, {
-				__index = brain_load(layer.properties.brain, layer_default_brain)
-			})
+			brain_set(layer, layer_default_brain)
 			local objects = layer.objects
 			if objects then
 				for o = 1, #objects do
-					local object = objects[o]
-					setmetatable(object, {
-						__index = brain_load(object.properties.brain, object_default_brain)
-					})
+					brain_set(objects[o], object_default_brain)
 				end
 			end
-		end
-
-		local map_brain = brain_load(map.properties.brain) or map_default_brain
-		for k,v in pairs(map_brain) do
-			map[k] = v
-		end
-
-		local map_update = map.update
-		map.update = function(m, dt)
-			m:think(dt)
-			map_update(m, dt)
 		end
 
 		map:start()
