@@ -68,11 +68,11 @@ end
 
 function love.draw()
 	-- Draw the map and all objects within
-	love.graphics.setColor(255, 255, 255)
+	love.graphics.setColor(1, 1, 1)
 	map:draw()
 
 	-- Draw Collision Map (useful for debugging)
-	love.graphics.setColor(255, 0, 0)
+	love.graphics.setColor(1, 0, 0)
 	map:box2d_draw()
 
 	-- Please note that map:draw, map:box2d_draw, and map:bump_draw take
@@ -83,7 +83,7 @@ end
 
 ## Requirements
 
-This library recommends LÖVE 11.0 and Tiled 0.18. If you are updating from an older version of Tiled, please re-export your Lua map files.
+This library recommends LÖVE 11.x and Tiled 1.2.x. If you are updating from an older version of Tiled, please re-export your Lua map files.
 
 ## License
 
