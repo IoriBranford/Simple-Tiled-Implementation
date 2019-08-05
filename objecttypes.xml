@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objecttypes>
+ <objecttype name="b2BodyDynamic" color="#ffffff">
+  <property name="categories" type="int" default="1"/>
+  <property name="collidable" type="bool" default="true"/>
+  <property name="dynamic" type="bool" default="true"/>
+  <property name="friction" type="float" default="0"/>
+  <property name="group" type="int" default="0"/>
+  <property name="mask" type="int" default="65535"/>
+  <property name="restitution" type="float" default="0"/>
+  <property name="sensor" type="bool" default="false"/>
+ </objecttype>
+ <objecttype name="b2BodyStatic" color="#7f7f7f">
+  <property name="categories" type="int" default="1"/>
+  <property name="collidable" type="bool" default="true"/>
+  <property name="dynamic" type="bool" default="false"/>
+  <property name="friction" type="float" default="0"/>
+  <property name="group" type="int" default="0"/>
+  <property name="mask" type="int" default="65535"/>
+  <property name="restitution" type="float" default="0"/>
+  <property name="sensor" type="bool" default="false"/>
+ </objecttype>
+ <objecttype name="b2Trigger" color="#00aaff">
+  <property name="categories" type="int" default="1"/>
+  <property name="collidable" type="bool" default="true"/>
+  <property name="dynamic" type="bool" default="false"/>
+  <property name="friction" type="float" default="0"/>
+  <property name="group" type="int" default="0"/>
+  <property name="mask" type="int" default="65535"/>
+  <property name="restitution" type="float" default="0"/>
+  <property name="sensor" type="bool" default="true"/>
+ </objecttype>
+</objecttypes>

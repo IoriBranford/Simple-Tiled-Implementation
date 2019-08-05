@@ -5,12 +5,20 @@ local map, world, tx, ty, points
 
 function love.load()
 	-- Load map
-	map = sti("tests/ortho.lua", { "box2d", "brain" })
-	--map = sti("tests/ortho-inf.lua", { "box2d" })
-	--map = sti("tests/iso.lua",   { "box2d" })
-	--map = sti("tests/stag.lua",  { "box2d" })
-	--map = sti("tests/hex.lua",   { "box2d" })
-	--map = sti("tests/objects.lua",   { "box2d" })
+	--map = sti("tests/ortho.lua",       { "box2d" })
+	--map = sti("tests/ortho-inf.lua",   { "box2d" })
+	--map = sti("tests/iso.lua",         { "box2d" })
+	--map = sti("tests/stag.lua",        { "box2d" })
+	--map = sti("tests/hex.lua",         { "box2d" })
+	--map = sti("tests/objects.lua",     { "box2d" })
+	--map = sti("tests/objecttypes.lua", { "box2d", "objecttype" })
+
+	-- Apply object types
+	map:objecttype_init("objecttypes.xml")
+	for _, object in pairs(map.objects) do
+		--map:objecttype_copy(object)
+		map:objecttype_setMetatable(object)
+	end
 
 	-- Print versions
 	print("STI: " .. sti._VERSION)
@@ -21,9 +29,8 @@ function love.load()
 
 	-- Prepare physics world
 	love.physics.setMeter(32)
-	world = love.physics.newWorld(0, 0)
+	world = love.physics.newWorld(0, 120)
 	map:box2d_init(world)
-	map:brain_init()
 
 	-- Drop points on clicked areas
 	points = {
