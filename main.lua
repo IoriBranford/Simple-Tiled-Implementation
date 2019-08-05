@@ -11,7 +11,7 @@ function love.load()
 	--map = sti("tests/stag.lua",        { "box2d" })
 	--map = sti("tests/hex.lua",         { "box2d" })
 	--map = sti("tests/objects.lua",     { "box2d" })
-	--map = sti("tests/objecttypes.lua", { "box2d", "objecttype" })
+	map = sti("tests/objecttypes.lua", { "box2d", "objecttype" })
 
 	-- Apply object types
 	map:objecttype_init("objecttypes.xml")
