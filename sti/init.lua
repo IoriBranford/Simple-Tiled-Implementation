@@ -162,6 +162,8 @@ function Map:loadPlugins(plugins)
 					self[k] = func
 				end
 			end
+		else
+			print(pluginModule)
 		end
 	end
 end
