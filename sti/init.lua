@@ -1205,7 +1205,9 @@ end
 -- @param y The Y axis location of the Tile (in tiles)
 -- @param gid The gid of the new tile
 function Map:setLayerTile(layer, x, y, gid)
-	layer = self.layers[layer]
+	if type(layer)=="string" then
+		layer = self.layers[layer]
+	end
 
 	layer.data[y] = layer.data[y] or {}
 	local tile = layer.data[y][x]
@@ -1256,6 +1258,7 @@ function Map:swapTile(instance, tile)
 				instance.id,
 				instance.x,
 				instance.y,
+				0,
 				0,
 				0)
 
