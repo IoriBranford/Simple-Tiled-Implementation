@@ -709,7 +709,7 @@ function Map:setObjectSpriteBatches(layer)
 				layer = layer,
 				gid   = tile.gid,
 				x     = tileX,
-				y     = tileY,
+				y     = tileY - oy,
 				r     = tileR,
 				oy    = oy
 			}
