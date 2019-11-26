@@ -62,7 +62,7 @@ end
 
 --- Flush image cache.
 function STI:flush()
-	self.cache = {}
+	STI.cache = {}
 end
 
 --- Map object
