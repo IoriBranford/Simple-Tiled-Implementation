@@ -58,8 +58,8 @@ return {
 			megaimagearea = megaimagearea + tilearea*tileset.tilecount
 		end
 
-		local megaimagewidth = 1
-		local megaimageheight = 1
+		local megaimagewidth = 1024
+		local megaimageheight = 1024
 
 		while maxtilewidth > megaimagewidth do
 			megaimagewidth = megaimagewidth * 2
