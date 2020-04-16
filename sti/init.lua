@@ -469,9 +469,9 @@ function Map:addNewLayerTile(layer, chunk, tile, x, y)
 		size    = layer.width * layer.height
 	end
 
-	batches[tileset] = batches[tileset] or lg.newSpriteBatch(image, size)
+	batches[image] = batches[image] or lg.newSpriteBatch(image, size)
 
-	local batch = batches[tileset]
+	local batch = batches[image]
 	local tileX, tileY = self:getLayerTilePosition(layer, tile, x, y)
 
 	local instance = {
@@ -670,7 +670,7 @@ function Map:setObjectSpriteBatches(layer)
 			local tileset = tile.tileset
 			local image   = self.tilesets[tileset].image
 
-			batches[tileset] = batches[tileset] or newBatch(image)
+			batches[image] = batches[image] or newBatch(image)
 
 			local sx = object.width  / tile.width
 			local sy = object.height / tile.height
@@ -679,7 +679,7 @@ function Map:setObjectSpriteBatches(layer)
 			local ox = 0
 			local oy = tile.height
 
-			local batch = batches[tileset]
+			local batch = batches[image]
 			local tileX = object.x + tile.offset.x
 			local tileY = object.y + tile.offset.y
 			local tileR = math.rad(object.rotation)
@@ -1550,6 +1550,20 @@ function Map:convertPixelToTile(x, y)
 		return
 			referenceX + offsets[nearest].x,
 			referenceY + offsets[nearest].y
+	end
+end
+
+--- Refresh sprite batches. Use after modifying tiles in tilesets.
+function Map:refreshSpriteBatches()
+	self.tileInstances = {}
+	self.freeBatchSprites = {}
+	setmetatable(self.freeBatchSprites, { __mode = 'k' })
+	for _, layer in ipairs(self.layers) do
+		if layer.type == "tilelayer" then
+			self:setSpriteBatches(layer)
+		elseif layer.type == "objectgroup" then
+			self:setObjectSpriteBatches(layer)
+		end
 	end
 end
 
