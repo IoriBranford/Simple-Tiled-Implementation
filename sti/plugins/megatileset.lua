@@ -46,8 +46,8 @@ return {
 		local maxtileheight = 0
 		for i = 1, #tilesets do
 			local tileset = tilesets[i]
-			local tilewidth = tileset.tilewidth
-			local tileheight = tileset.tileheight
+			local tilewidth = tileset.tilewidth + 1
+			local tileheight = tileset.tileheight + 1
 			if maxtilewidth < tilewidth then
 				maxtilewidth = tilewidth
 			end
@@ -94,8 +94,8 @@ return {
 
 		for i = 1, #tiles do
 			local tile = tiles[i]
-			local width = tile.width
-			local height = tile.height
+			local width = tile.width + 1
+			local height = tile.height + 1
 			local subspace = findSubspace(space, width, height)
 			if not subspace then
 				return false, "Megatileset could not fit all tiles"
@@ -134,7 +134,7 @@ return {
 		LG.setCanvas()
 
 		local megaimagedata = canvas:newImageData()
-		--megaimagedata:encode("png", "megaimage.png")
+		megaimagedata:encode("png", "megaimage.png")
 		local megaimage = LG.newImage(megaimagedata)
 		megaimage:setFilter("nearest", "nearest")
 		for i = 1, #tilesets do
