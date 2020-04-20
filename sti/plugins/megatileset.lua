@@ -92,28 +92,34 @@ return {
 
 		local space = newSpace(0, 0, megaimagewidth, megaimageheight)
 
+		local flippedtiles = {}
+
+		local bit31   = 2147483648
+		local bit30   = 1073741824
+		local bit29   = 536870912
+
 		for i = 1, #tiles do
 			local tile = tiles[i]
-			local width = tile.width + 1
-			local height = tile.height + 1
-			local subspace = findSubspace(space, width, height)
-			if not subspace then
-				return false, "Megatileset could not fit all tiles"
+			if tile.gid >= bit29 then
+				flippedtiles[#flippedtiles + 1] = tile
+			else
+				local width = tile.width + 1
+				local height = tile.height + 1
+				local subspace = findSubspace(space, width, height)
+				if not subspace then
+					return false, "Megatileset could not fit all tiles"
+				end
+				subspace.tile = tile
+				splitSpace(subspace, width, height)
 			end
-			subspace.tile = tile
-			splitSpace(subspace, width, height)
 		end
 
 		local function drawSpace(space)
 			local tile = space.tile
 			if tile then
 				local destx, desty = space.x, space.y
-				-- Don't draw flipped tiles to the megatileset,
-				-- but do set their quads
-				if tile.gid < 0x20000000 then
-					local tileset = tilesets[tile.tileset]
-					LG.draw(tileset.image, tile.quad, destx, desty)
-				end
+				local tileset = tilesets[tile.tileset]
+				LG.draw(tileset.image, tile.quad, destx, desty)
 				tile.quad = LG.newQuad(destx, desty,
 					tile.width, tile.height,
 					megaimagewidth, megaimageheight)
@@ -133,8 +139,24 @@ return {
 		drawSpace(space)
 		LG.setCanvas()
 
+		for i = 1, #flippedtiles do
+			local tile = flippedtiles[i]
+			local realgid = tile.gid
+
+			if realgid >= bit31 then
+				realgid = realgid - bit31
+			end
+			if realgid >= bit30 then
+				realgid = realgid - bit30
+			end
+			if realgid >= bit29 then
+				realgid = realgid - bit29
+			end
+			tile.quad = map.tiles[realgid].quad
+		end
+
 		local megaimagedata = canvas:newImageData()
-		megaimagedata:encode("png", "megaimage.png")
+		--megaimagedata:encode("png", "megaimage.png")
 		local megaimage = LG.newImage(megaimagedata)
 		megaimage:setFilter("nearest", "nearest")
 		for i = 1, #tilesets do
