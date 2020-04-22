@@ -61,19 +61,9 @@ return {
 		local megaimagewidth = 1024
 		local megaimageheight = 1024
 
-		while maxtilewidth > megaimagewidth do
-			megaimagewidth = megaimagewidth * 2
-		end
-
-		while maxtileheight > megaimageheight do
-			megaimageheight = megaimageheight * 2
-		end
-
 		while megaimagearea > megaimagewidth*megaimageheight do
 			megaimagewidth = megaimagewidth*2
-			if megaimagearea > megaimagewidth*megaimageheight then
-				megaimageheight = megaimageheight*2
-			end
+			megaimageheight = megaimageheight*2
 		end
 
 		local limits = LG.getSystemLimits()
