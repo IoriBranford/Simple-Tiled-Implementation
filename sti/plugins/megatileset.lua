@@ -46,8 +46,8 @@ return {
 		local maxtileheight = 0
 		for i = 1, #tilesets do
 			local tileset = tilesets[i]
-			local tilewidth = tileset.tilewidth + 1
-			local tileheight = tileset.tileheight + 1
+			local tilewidth = tileset.tilewidth + 2
+			local tileheight = tileset.tileheight + 2
 			if maxtilewidth < tilewidth then
 				maxtilewidth = tilewidth
 			end
@@ -93,8 +93,8 @@ return {
 			if tile.gid >= bit29 then
 				flippedtiles[#flippedtiles + 1] = tile
 			else
-				local width = tile.width + 1
-				local height = tile.height + 1
+				local width = tile.width + 2
+				local height = tile.height + 2
 				local subspace = findSubspace(space, width, height)
 				if not subspace then
 					return false, "Megatileset could not fit all tiles"
@@ -104,17 +104,45 @@ return {
 			end
 		end
 
+		local drawSpace_quad = LG.newQuad(0, 0, 1, 1, 1, 1)
 		local function drawSpace(space)
+			local quad = drawSpace_quad
 			local tile = space.tile
 			if tile then
-				local destx, desty = space.x, space.y
+				local tw, th = tile.width, tile.height
+				local dx0, dy0 = space.x, space.y
+				local dx1, dy1 = dx0+1, dy0+1
+				local dx2, dy2 = dx1+tw, dy1+th
 				local tileset = tilesets[tile.tileset]
-				LG.draw(tileset.image, tile.quad, destx, desty)
-				tile.quad = LG.newQuad(destx, desty,
-					tile.width, tile.height,
+				local qx, qy, qw, qh = tile.quad:getViewport()
+				local qx2 = qx + qw - 1
+				local qy2 = qy + qh - 1
+				local drawrects = {
+					dx0, dy0, qx, qy, 1, 1,
+					dx1, dy0, qx, qy, qw, 1,
+					dx2, dy0, qx2, qy, 1, 1,
+					dx0, dy1, qx, qy, 1, qh,
+					dx1, dy1, qx, qy, qw, qh,
+					dx2, dy1, qx2, qy, 1, qh,
+					dx0, dy2, qx, qy2, 1, 1,
+					dx1, dy2, qx, qy2, qw, 1,
+					dx2, dy2, qx2, qy2, 1, 1
+				}
+				local iw, ih = tileset.image:getWidth(), tileset.image:getHeight()
+				for i = 6, #drawrects, 6 do
+					local destx = drawrects[i-5]
+					local desty = drawrects[i-4]
+					local ex = drawrects[i-3]
+					local ey = drawrects[i-2]
+					local ew = drawrects[i-1]
+					local eh = drawrects[i-0]
+					quad:setViewport(ex, ey, ew, eh, iw, ih)
+					LG.draw(tileset.image, quad, destx, desty)
+				end
+				tile.quad = LG.newQuad(dx1, dy1, tw, th,
 					megaimagewidth, megaimageheight)
 			end
-			--LG.rectangle("line", space.x, space.y, space.w, space.h)
+			--DEBUG LG.rectangle("line", space.x, space.y, space.w, space.h)
 			if #space > 0 then
 				drawSpace(space[1])
 				drawSpace(space[2])
@@ -146,7 +174,7 @@ return {
 		end
 
 		local megaimagedata = canvas:newImageData()
-		--megaimagedata:encode("png", "megaimage.png")
+		--DEBUG megaimagedata:encode("png", "megaimage.png")
 		local megaimage = LG.newImage(megaimagedata)
 		megaimage:setFilter("nearest", "nearest")
 		for i = 1, #tilesets do
