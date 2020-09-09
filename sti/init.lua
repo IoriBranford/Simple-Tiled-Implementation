@@ -504,11 +504,24 @@ local function findNonEmptyLine(layer, iaxis, dir)
 	local i2 = dir > 0 and (iaxis == 2 and layer.height or layer.width) or 1
 	local j1 = 1
 	local j2 = (iaxis == 1 and layer.height or layer.width)
-	for i = i1, i2, dir do
-		for j = j1, j2 do
-			local tile = iaxis == 2 and data[i][j] or data[j][i]
-			if tile then
-				return i
+	if iaxis == 2 then
+		for i = i1, i2, dir do
+			for j = j1, j2 do
+				local line = data[i]
+				local tile = line and line[j]
+				if tile then
+					return i
+				end
+			end
+		end
+	else
+		for i = i1, i2, dir do
+			for j = j1, j2 do
+				local line = data[j]
+				local tile = line and line[i]
+				if tile then
+					return i
+				end
 			end
 		end
 	end
