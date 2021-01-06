@@ -96,21 +96,7 @@ function Map:init(path, plugins, ox, oy)
 	-- Set tiles, images
 	local gid = 1
 	for i, tileset in ipairs(self.tilesets) do
-		assert(tileset.image, "STI does not support Tile Collections.\nYou need to create a Texture Atlas.")
-
-		-- Cache images
-		if lg.isCreated then
-			local formatted_path = utils.format_path(path .. tileset.image)
-
-			if not STI.cache[formatted_path] then
-				utils.fix_transparent_color(tileset, formatted_path)
-				utils.cache_image(STI, formatted_path, tileset.image)
-			else
-				tileset.image = STI.cache[formatted_path]
-			end
-		end
-
-		gid = self:setTiles(i, tileset, gid)
+		gid = self:setTileset(i, tileset, gid, path)
 	end
 
 	local layers = {}
@@ -123,6 +109,33 @@ function Map:init(path, plugins, ox, oy)
 	for _, layer in ipairs(self.layers) do
 		self:setLayer(layer, path)
 	end
+end
+
+function Map:addTileset(tileset, path)
+	local lasttileset = self.tilesets[#self.tilesets]
+	tileset.firstgid = lasttileset.firstgid + lasttileset.tilecount
+
+	local i = #self.tilesets + 1
+	self.tilesets[i] = tileset
+	self:setTileset(i, tileset, tileset.firstgid, path)
+end
+
+function Map:setTileset(i, tileset, firstgid, path)
+	assert(tileset.image, "STI does not support Tile Collections.\nYou need to create a Texture Atlas.")
+
+	-- Cache images
+	if lg.isCreated then
+		local formatted_path = utils.format_path(path .. tileset.image)
+
+		if not STI.cache[formatted_path] then
+			utils.fix_transparent_color(tileset, formatted_path)
+			utils.cache_image(STI, formatted_path, tileset.image)
+		else
+			tileset.image = STI.cache[formatted_path]
+		end
+	end
+
+	return self:setTiles(i, tileset, firstgid)
 end
 
 --- Layers from the group are added to the list
