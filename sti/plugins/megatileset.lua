@@ -13,17 +13,44 @@ local function newSpace(x, y, w, h)
 end
 
 local function findSubspace(space, w, h)
-	if #space > 0 then
-		return findSubspace(space[1], w, h) or findSubspace(space[2], w, h)
+	for i = 1, #space do
+		local subspace = findSubspace(space[i], w, h)
+		if subspace then
+			return subspace
+		end
 	end
-	return w <= space.w and h <= space.h and space
+	return w <= space.w and h <= space.h and not space.tile and space
 end
 
 local function splitSpace(space, w, h)
 	local rightw = space.w - w
 	local downh = space.h - h
-	space[1] = newSpace(space.x + w, space.y, rightw, h)
-	space[2] = newSpace(space.x, space.y + h, space.w, downh)
+	if rightw > 0 then
+		space[#space+1] = newSpace(space.x + w, space.y, rightw, h)
+	end
+	if downh > 0 then
+		space[#space+1] = newSpace(space.x, space.y + h, space.w, downh)
+	end
+end
+
+local function growSpace(space, neww, newh)
+	local newspace = space
+	if space.w < neww then
+		newspace = newSpace(0, 0, neww, newh)
+		newspace[#newspace+1] = newSpace(space.w, 0, neww - space.w, space.h)
+	else
+		neww = space.w
+	end
+	if space.h < newh then
+		if newspace==space then
+			newspace = newSpace(0, 0, neww, newh)
+		end
+		newspace[#newspace+1] = newSpace(0, space.h, neww, newh - space.h)
+	end
+	if newspace ~= space then
+		newspace[#newspace+1] = space
+	end
+	return newspace
 end
 
 return {
@@ -58,18 +85,15 @@ return {
 			megaimagearea = megaimagearea + tilearea*tileset.tilecount
 		end
 
-		local megaimagewidth = 1024
-		local megaimageheight = 1024
+		local megaimagewidth = 1
+		local megaimageheight = 1
 
 		while megaimagearea > megaimagewidth*megaimageheight do
-			megaimagewidth = megaimagewidth*2
-			megaimageheight = megaimageheight*2
-		end
-
-		local limits = LG.getSystemLimits()
-		if megaimagewidth > limits.texturesize
-		or megaimageheight > limits.texturesize then
-			return false, "Megatileset exceeds texture size limit"
+			if megaimageheight < megaimagewidth then
+				megaimageheight = megaimageheight*2
+			else
+				megaimagewidth = megaimagewidth*2
+			end
 		end
 
 		local tiles = {}
@@ -96,12 +120,24 @@ return {
 				local width = tile.width + 2
 				local height = tile.height + 2
 				local subspace = findSubspace(space, width, height)
-				if not subspace then
-					return false, "Megatileset could not fit all tiles"
+				while not subspace do
+					if megaimageheight < megaimagewidth then
+						megaimageheight = megaimageheight*2
+					else
+						megaimagewidth = megaimagewidth*2
+					end
+					space = growSpace(space, megaimagewidth, megaimageheight)
+					subspace = findSubspace(space, width, height)
 				end
 				subspace.tile = tile
 				splitSpace(subspace, width, height)
 			end
+		end
+
+		local limits = LG.getSystemLimits()
+		if megaimagewidth > limits.texturesize
+		or megaimageheight > limits.texturesize then
+			return false, string.format("Megatileset exceeds texture size limit of %dpx", limits.texturesize)
 		end
 
 		local drawSpace_quad = LG.newQuad(0, 0, 1, 1, 1, 1)
@@ -142,10 +178,10 @@ return {
 				tile.quad = LG.newQuad(dx1, dy1, tw, th,
 					megaimagewidth, megaimageheight)
 			end
-			--DEBUG LG.rectangle("line", space.x, space.y, space.w, space.h)
-			if #space > 0 then
-				drawSpace(space[1])
-				drawSpace(space[2])
+			--DEBUG
+			--LG.rectangle("line", space.x, space.y, space.w, space.h)
+			for i = 1, #space do
+				drawSpace(space[i])
 			end
 		end
 
@@ -174,7 +210,8 @@ return {
 		end
 
 		local megaimagedata = canvas:newImageData()
-		--DEBUG megaimagedata:encode("png", "megaimage.png")
+		--DEBUG
+		--megaimagedata:encode("png", "megaimage.png")
 		local megaimage = LG.newImage(megaimagedata)
 		megaimage:setFilter("nearest", "nearest")
 		for i = 1, #tilesets do
