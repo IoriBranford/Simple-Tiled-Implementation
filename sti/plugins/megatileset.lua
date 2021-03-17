@@ -216,7 +216,7 @@ return {
 		megaimage:setFilter("nearest", "nearest")
 		for i = 1, #tilesets do
 			local tileset = tilesets[i]
-			tileset.image:release()
+			--tileset.image:release()
 			tileset.image = megaimage
 		end
 
@@ -256,17 +256,27 @@ return {
 		local megaimage = love.graphics.newImage(megatileset.image)
 		megaimage:setFilter("nearest", "nearest")
 		local iw, ih = megaimage:getDimensions()
+
+		local canvas = love.graphics.newCanvas(iw, ih, { format = "rgba8" })
+		canvas:renderTo(function()
+			love.graphics.draw(megaimage, 0, 0)
+		end)
+		canvas:setFilter("nearest", "nearest")
+
 		megatileset.image = nil
+		megaimage = nil
 
 		local tiles = map.tiles
 		local tilesets = map.tilesets
 		for i, tileset in pairs(tilesets) do
-			tileset.image:release()
-			tileset.image = megaimage
+			--tileset.image:release()
+			tileset.image = canvas
 		end
 		for gid, quad in pairs(megatileset) do
 			local tile = tiles[gid]
-			tile.quad = love.graphics.newQuad(quad[1], quad[2], quad[3], quad[4], iw, ih)
+			if tile then
+				tile.quad = love.graphics.newQuad(quad[1], quad[2], quad[3], quad[4], iw, ih)
+			end
 		end
 		map:refreshSpriteBatches()
 		return true
