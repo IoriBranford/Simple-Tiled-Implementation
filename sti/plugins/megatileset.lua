@@ -242,7 +242,7 @@ return {
 
 		local pl_pretty = require "pl.pretty"
 		local megatilesetpath = "megatileset_"..mapfile
-		love.filesystem.write(megatilesetpath, "return "..pl_pretty.write(megatileset, "", true))
+		love.filesystem.write(megatilesetpath, "return "..pl_pretty.write(megatileset, ""))
 	end,
 
 	megatileset_load = function(map, mapfile)
