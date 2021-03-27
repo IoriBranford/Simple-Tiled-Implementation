@@ -209,69 +209,56 @@ return {
 			tile.quad = map.tiles[realgid].quad
 		end
 
-		--DEBUG
-		--local megaimagedata = canvas:newImageData()
-		--megaimagedata:encode("png", "megaimage.png")
-		local megaimage = canvas -- once it's an image, you can't get the data again
+		local megaimagedata = canvas:newImageData()
+		local megaimage = love.graphics.newImage(megaimagedata)
 		megaimage:setFilter("nearest", "nearest")
 		for i = 1, #tilesets do
 			local tileset = tilesets[i]
-			--tileset.image:release()
 			tileset.image = megaimage
 		end
 
 		map:refreshSpriteBatches()
 
-		return megaimage
+		return megaimagedata
 	end,
 
-	megatileset_save = function(map, mapfile)
+	megatileset_save = function(map, megatilesetpath, megaimagepath, megaimagedata)
 		local tiles = map.tiles
-		local megaimage = map.tilesets[1].image
-		local megaimagedata = megaimage:newImageData()
-		local megaimagepath = "megatileset_"..mapfile..".png"
 		megaimagedata:encode("png", megaimagepath)
 
-		local megatileset = {}
-		megatileset.image = megaimagepath
+		local megatileset = { "return {" }
 		for gid, tile in pairs(tiles) do
 			local x, y, w, h = tile.quad:getViewport()
-			megatileset[gid] = { x, y, w, h }
+			megatileset[#megatileset+1] = string.format("[%d]={%d,%d,%d,%d},", gid, x, y, w, h)
 		end
-		local iw, ih = megaimage:getDimensions()
-
-		local pl_pretty = require "pl.pretty"
-		local megatilesetpath = "megatileset_"..mapfile
-		love.filesystem.write(megatilesetpath, "return "..pl_pretty.write(megatileset, ""))
+		megatileset[#megatileset+1] = "}"
+		love.filesystem.write(megatilesetpath, table.concat(megatileset))
 	end,
 
-	megatileset_load = function(map, mapfile)
-		local megatilesetpath = "megatileset_"..mapfile
+	megatileset_load = function(map, megatilesetpath, megaimage)
 		local f, err = love.filesystem.load(megatilesetpath)
 		if not f then
 			return false, err
 		end
-		local megatileset = f()
-
-		local megaimage = love.graphics.newImage(megatileset.image)
-		megaimage:setFilter("nearest", "nearest")
-		local iw, ih = megaimage:getDimensions()
-
-		local canvas = love.graphics.newCanvas(iw, ih, { format = "rgba8" })
-		canvas:renderTo(function()
-			love.graphics.draw(megaimage, 0, 0)
-		end)
-		canvas:setFilter("nearest", "nearest")
-
-		megatileset.image = nil
-		megaimage = nil
 
 		local tiles = map.tiles
 		local tilesets = map.tilesets
-		for i, tileset in pairs(tilesets) do
-			--tileset.image:release()
-			tileset.image = canvas
+
+		local megatileset = f()
+
+		if type(megaimage) == "string" then
+			megaimage = love.graphics.newImage(megaimage)
+			megaimage:setFilter("nearest", "nearest")
+
+			for i, tileset in pairs(tilesets) do
+				tileset.image = megaimage
+			end
+		elseif type(megaimage) ~= "Image" then
+			megaimage = tilesets[1].image
 		end
+
+		local iw, ih = megaimage:getDimensions()
+
 		for gid, quad in pairs(megatileset) do
 			local tile = tiles[gid]
 			if tile then
